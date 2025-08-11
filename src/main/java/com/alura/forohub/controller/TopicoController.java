@@ -4,6 +4,7 @@ import com.alura.forohub.topico.DatosDetalleTopico;
 import com.alura.forohub.topico.DatosRegistroTopico;
 import com.alura.forohub.topico.Topico;
 import com.alura.forohub.topico.TopicoRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping("/topicos")
+@SecurityRequirement(name = "bearer-key")
 public class TopicoController {
 
     @Autowired
@@ -23,10 +25,12 @@ public class TopicoController {
 
    @Transactional
    @PostMapping
-    public ResponseEntity registrar(@RequestBody @Valid DatosRegistroTopico datos){
+    public ResponseEntity registrar(@RequestBody @Valid DatosRegistroTopico datos, UriComponentsBuilder uriComponentsBuilder){
        var topico = new Topico(datos);
        repository.save(topico);
 
-       return ResponseEntity.ok(new DatosDetalleTopico(topico));
+       var uri = uriComponentsBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
+
+       return ResponseEntity.created(uri).body(new DatosDetalleTopico(topico));
     }
 }
